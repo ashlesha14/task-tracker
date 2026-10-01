@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Task Tracker</title>
+<meta name="theme-color" content="#23507a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tasks">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column. Add bar on top, filter row, then a dated list. */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --fg: #16202a;
+  --muted: #62707d;
+  --line: #dde3e8;
+  --accent: #23507a;
+  --accent-fg: #ffffff;
+  --personal: #0f7a6b;
+  --personal-bg: #dcf1ed;
+  --office: #7a4a0f;
+  --office-bg: #f7e8d0;
+  --danger: #a3302a;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11181f; --surface: #1a232c; --fg: #e6ebef; --muted: #93a1ad; --line: #2b3742;
+    --accent: #6fa8dc; --accent-fg: #0d1418;
+    --personal: #59d0be; --personal-bg: #163a35; --office: #f0b35f; --office-bg: #3d2d14; --danger: #f08a83;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11181f; --surface: #1a232c; --fg: #e6ebef; --muted: #93a1ad; --line: #2b3742;
+  --accent: #6fa8dc; --accent-fg: #0d1418;
+  --personal: #59d0be; --personal-bg: #163a35; --office: #f0b35f; --office-bg: #3d2d14; --danger: #f08a83;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { color-scheme: light dark; }
+.backup { display: flex; gap: 8px; justify-content: center; }
+.backup button { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.45; padding-inline: 16px; padding-block: 32px 64px; }
+main { max-width: 640px; margin-inline: auto; display: grid; gap: 20px; }
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-size: 1.6rem; font-weight: 600; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
+.today { font-family: var(--font-data); font-size: 0.8rem; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+form { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 12px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+input[type="text"] { flex: 1 1 200px; min-width: 0; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+input[type="text"]::placeholder { color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg label { cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; padding: 8px 14px; font-size: 0.85rem; color: var(--muted); }
+.seg input:checked + span.p { background: var(--personal-bg); color: var(--personal); font-weight: 600; }
+.seg input:checked + span.o { background: var(--office-bg); color: var(--office); font-weight: 600; }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+button { font: inherit; cursor: pointer; }
+.add { background: var(--accent); color: var(--accent-fg); border: 0; border-radius: 6px; padding: 9px 18px; font-weight: 600; margin-left: auto; }
+.add:disabled { opacity: 0.5; cursor: default; }
+
+.filters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 0.85rem; }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chip .n { font-family: var(--font-data); margin-left: 4px; opacity: 0.75; }
+
+ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+li { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; }
+li input[type="checkbox"] { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent); cursor: pointer; }
+.body { min-width: 0; display: grid; gap: 6px; }
+.title { overflow-wrap: anywhere; }
+li.done .title { text-decoration: line-through; color: var(--muted); }
+.meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); }
+.tag { font-family: var(--font-body); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; }
+.tag.personal { background: var(--personal-bg); color: var(--personal); }
+.tag.office { background: var(--office-bg); color: var(--office); }
+.del { background: none; border: 0; color: var(--muted); font-size: 1.2rem; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+.del:hover { color: var(--danger); }
+.empty { text-align: center; color: var(--muted); padding: 36px 16px; border: 1px dashed var(--line); border-radius: 8px; }
+.note { font-size: 0.78rem; color: var(--muted); min-height: 1.2em; }
+@media (prefers-reduced-motion: no-preference) { li { transition: opacity .15s; } li.done { opacity: .75; } }
+</style>
+
+<main>
+  <header>
+    <h1>My Task Tracker</h1>
+    <span class="today" id="today"></span>
+  </header>
+
+  <form id="addForm">
+    <div class="row">
+      <input type="text" id="title" placeholder="What needs doing?" autocomplete="off" aria-label="Task">
+    </div>
+    <div class="row">
+      <div class="seg" role="radiogroup" aria-label="Tag">
+        <label><input type="radio" name="tag" value="personal" checked><span class="p">Personal</span></label>
+        <label><input type="radio" name="tag" value="office"><span class="o">Office</span></label>
+      </div>
+      <button class="add" id="addBtn" type="submit" disabled>Add task</button>
+    </div>
+  </form>
+
+  <div class="filters">
+    <div class="chips" id="tagChips"></div>
+    <div class="chips" id="statusChips"></div>
+  </div>
+
+  <ul id="list"></ul>
+  <div class="note" id="note"></div>
+  <div class="backup">
+    <button type="button" id="exportBtn">Export backup</button>
+    <button type="button" id="importBtn">Import backup</button>
+    <input type="file" id="importFile" accept="application/json" hidden>
+  </div>
+</main>
+
+<script>
+(function () {
+  var tasks = [];
+  var filterTag = "all", filterStatus = "open";
+  var store = null;
+
+  function load(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } }
+  function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  filterTag = load("tt.tag", "all"); filterStatus = load("tt.status", "open");
+
+  var fmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  document.getElementById("today").textContent = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date());
+  function fmtDate(iso) { var d = new Date(iso); return isNaN(d) ? "" : fmt.format(d); }
+  function newId() { return "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  /* ---------- storage: private db per user, else localStorage ---------- */
+  function localStore() {
+    var key = "tt.tasks", cbs = [];
+    function read() { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; } }
+    var mem = read();
+    function write() { try { localStorage.setItem(key, JSON.stringify(mem)); } catch (e) {} cbs.forEach(function (f) { f(mem.slice()); }); }
+    return {
+      kind: "local",
+      subscribe: function (f) { cbs.push(f); f(mem.slice()); },
+      put: function (t) { var i = mem.findIndex(function (x) { return x.id === t.id; }); if (i < 0) mem.push(t); else mem[i] = t; write(); return Promise.resolve(); },
+      remove: function (id) { mem = mem.filter(function (x) { return x.id !== id; }); write(); return Promise.resolve(); }
+    };
+  }
+  function dbStore(db, uid) {
+    var col = db.collection("data/users/" + uid);
+    return {
+      kind: "db",
+      subscribe: function (f) {
+        col.onSnapshot(function (snap) {
+          f(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }));
+        }, function () { setNote("Sync stopped. Reload the page."); });
+      },
+      put: function (t) { var b = Object.assign({}, t); delete b.id; return col.doc(t.id).set(b); },
+      remove: function (id) { return col.doc(id).delete(); }
+    };
+  }
+
+  /* ---------- actions ---------- */
+  function setNote(s) { document.getElementById("note").textContent = s || ""; }
+  function run(p) { p.catch(function () { setNote("That change could not be saved."); }); }
+  function addTask(title, tag) {
+    var t = { id: newId(), title: title, tag: tag, done: false, addedAt: new Date().toISOString(), doneAt: null };
+    if (store) run(store.put(t));
+  }
+  function toggle(t) { run(store.put(Object.assign({}, t, { done: !t.done, doneAt: !t.done ? new Date().toISOString() : null }))); }
+
+  /* ---------- render ---------- */
+  function chip(label, val, cur, n, onClick) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.setAttribute("aria-pressed", String(cur === val));
+    b.appendChild(document.createTextNode(label));
+    var s = document.createElement("span"); s.className = "n"; s.textContent = n; b.appendChild(s);
+    b.addEventListener("click", function () { onClick(val); });
+    return b;
+  }
+  function render() {
+    var open = tasks.filter(function (t) { return !t.done; });
+    var byTag = function (t) { return filterTag === "all" || t.tag === filterTag; };
+    var scoped = tasks.filter(byTag);
+    var cnt = function (arr, f) { return arr.filter(f).length; };
+
+    var tc = document.getElementById("tagChips"); tc.textContent = "";
+    [["All", "all"], ["Personal", "personal"], ["Office", "office"]].forEach(function (x) {
+      var n = cnt(tasks, function (t) { return !t.done && (x[1] === "all" || t.tag === x[1]); });
+      tc.appendChild(chip(x[0], x[1], filterTag, n, function (v) { filterTag = v; save("tt.tag", v); render(); }));
+    });
+    var sc = document.getElementById("statusChips"); sc.textContent = "";
+    [["Open", "open"], ["Done", "done"], ["Both", "all"]].forEach(function (x) {
+      var n = x[1] === "all" ? scoped.length : cnt(scoped, function (t) { return (x[1] === "done") === t.done; });
+      sc.appendChild(chip(x[0], x[1], filterStatus, n, function (v) { filterStatus = v; save("tt.status", v); render(); }));
+    });
+
+    var shown = scoped.filter(function (t) { return filterStatus === "all" || (filterStatus === "done") === t.done; })
+      .sort(function (a, b) { return a.done - b.done || (b.addedAt || "").localeCompare(a.addedAt || ""); });
+
+    var ul = document.getElementById("list"); ul.textContent = "";
+    if (!shown.length) {
+      var e = document.createElement("li"); e.className = "empty"; e.style.display = "block";
+      e.textContent = tasks.length ? "Nothing here with these filters." : "No tasks yet. Type one above, pick Personal or Office, and press Add task.";
+      ul.appendChild(e);
+    }
+    shown.forEach(function (t) {
+      var li = document.createElement("li"); if (t.done) li.className = "done";
+      var cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!t.done; cb.id = "c_" + t.id;
+      cb.setAttribute("aria-label", "Mark done"); cb.addEventListener("change", function () { toggle(t); });
+      var body = document.createElement("div"); body.className = "body";
+      var title = document.createElement("div"); title.className = "title"; title.textContent = t.title;
+      var meta = document.createElement("div"); meta.className = "meta";
+      var tag = document.createElement("span"); tag.className = "tag " + t.tag; tag.textContent = t.tag === "office" ? "Office" : "Personal";
+      var added = document.createElement("span"); added.textContent = "Added " + fmtDate(t.addedAt);
+      meta.appendChild(tag); meta.appendChild(added);
+      if (t.done && t.doneAt) { var dn = document.createElement("span"); dn.textContent = "Done " + fmtDate(t.doneAt); meta.appendChild(dn); }
+      body.appendChild(title); body.appendChild(meta);
+      var del = document.createElement("button"); del.type = "button"; del.className = "del"; del.textContent = "×";
+      del.setAttribute("aria-label", "Delete task"); del.addEventListener("click", function () { run(store.remove(t.id)); });
+      li.appendChild(cb); li.appendChild(body); li.appendChild(del); ul.appendChild(li);
+    });
+  }
+
+  /* ---------- form ---------- */
+  var titleEl = document.getElementById("title"), addBtn = document.getElementById("addBtn");
+  titleEl.addEventListener("input", function () { addBtn.disabled = !titleEl.value.trim(); });
+  document.getElementById("addForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var v = titleEl.value.trim(); if (!v) return;
+    addTask(v, document.querySelector('input[name="tag"]:checked').value);
+    titleEl.value = ""; addBtn.disabled = true; titleEl.focus();
+  });
+
+  /* ---------- boot ---------- */
+  function start(s) {
+    store = s;
+    store.subscribe(function (list) { tasks = list; render(); });
+    if (s.kind === "local") setNote("Saved in this browser only.");
+  }
+  render();
+  start(localStore());
+
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(tasks, null, 2)], { type: "application/json" }));
+    a.download = "tasks-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.click();
+  });
+  var impFile = document.getElementById("importFile");
+  document.getElementById("importBtn").addEventListener("click", function () { impFile.click(); });
+  impFile.addEventListener("change", function () {
+    var f = impFile.files[0]; if (!f) return;
+    f.text().then(function (txt) {
+      var list = JSON.parse(txt);
+      list.forEach(function (t) { if (t && t.id && t.title && t.tag) store.put(t); });
+      setNote("Imported " + list.length + " tasks.");
+    }).catch(function () { setNote("That file is not a valid backup."); });
+    impFile.value = "";
+  });
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+})();
+</script>
+</body>
+</html>
