@@ -64,6 +64,10 @@ li.task .tag.office { background: var(--surface); }
 .tabs .n { font-family: var(--font-data); font-weight: 400; font-size: 0.75rem; margin-left: 4px; }
 .dform { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px; display: flex; gap: 6px; }
 .dform .add { margin-left: 0; }
+#addForm { flex-wrap: nowrap; }
+#addForm input[type="text"] { flex: 1 1 auto; width: 0; }
+#addForm .seg span { padding: 6px 8px; }
+.add.tick { margin-left: 0; padding: 0; width: 34px; height: 34px; flex: none; font-size: 1.1rem; line-height: 1; display: grid; place-items: center; }
 .dform { flex-wrap: wrap; }
 .dform input[type="text"] { flex: 1 1 100%; }
 .dform .add { margin-left: auto; }
@@ -199,10 +203,10 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
     </div>
     <div class="row">
       <div class="seg" role="radiogroup" aria-label="Tag">
-        <label><input type="radio" name="tag" value="personal" checked><span class="p">Personal</span></label>
-        <label><input type="radio" name="tag" value="office"><span class="o">Office</span></label>
+        <label><input type="radio" name="tag" value="personal" checked><span class="p">Pers</span></label>
+        <label><input type="radio" name="tag" value="office"><span class="o">OFC</span></label>
       </div>
-      <button class="add" id="addBtn" type="submit" disabled>Add task</button>
+      <button class="add tick" id="addBtn" type="submit" aria-label="Add task" title="Add task" disabled>&#10003;</button>
     </div>
   </form>
 
@@ -288,7 +292,7 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
     var cnt = function (arr, f) { return arr.filter(f).length; };
 
     var tc = document.getElementById("tagChips"); tc.textContent = "";
-    [["All", "all"], ["Personal", "personal"], ["Office", "office"]].forEach(function (x) {
+    [["All", "all"], ["Pers", "personal"], ["OFC", "office"]].forEach(function (x) {
       var n = cnt(tasks, function (t) { return !t.done && (x[1] === "all" || t.tag === x[1]); });
       tc.appendChild(chip(x[0], x[1], filterTag, n, function (v) { filterTag = v; save("tt.tag", v); render(); }));
     });
@@ -304,7 +308,7 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
     var ul = document.getElementById("list"); ul.textContent = "";
     if (!shown.length) {
       var e = document.createElement("li"); e.className = "empty"; e.style.display = "block";
-      e.textContent = tasks.length ? "Nothing here with these filters." : "No tasks yet. Type one above, pick Personal or Office, and press Add task.";
+      e.textContent = tasks.length ? "Nothing here with these filters." : "No tasks yet. Type one above, pick Pers or OFC, and tap the tick.";
       ul.appendChild(e);
     }
     shown.forEach(function (t) {
@@ -314,7 +318,7 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
       var body = document.createElement("div"); body.className = "body";
       var title = document.createElement("div"); title.className = "title"; title.textContent = t.title;
       var meta = document.createElement("div"); meta.className = "meta";
-      var tag = document.createElement("span"); tag.className = "tag " + t.tag; tag.textContent = t.tag === "office" ? "Office" : "Personal";
+      var tag = document.createElement("span"); tag.className = "tag " + t.tag; tag.textContent = t.tag === "office" ? "OFC" : "Pers";
       var added = document.createElement("span"); added.textContent = "Added " + fmtDate(t.addedAt);
       meta.appendChild(tag); meta.appendChild(added);
       if (t.done && t.doneAt) { var dn = document.createElement("span"); dn.textContent = "Done " + fmtDate(t.doneAt); meta.appendChild(dn); }
