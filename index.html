@@ -159,6 +159,37 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
 .empty { text-align: center; color: var(--muted); padding: 16px; border: 1px dashed var(--line); border-radius: 8px; }
 .note { font-size: 0.75rem; color: var(--muted); }
 .note:empty { display: none; }
+.acct { display: flex; justify-content: flex-end; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); margin-top: -4px; }
+.acct span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct button, .ghost { background: none; border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 4px 10px; font-size: 0.78rem; }
+.login { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 6px; }
+.login h2 { margin: 0; font-size: 1.05rem; }
+.login p { margin: 0 0 6px; color: var(--muted); font-size: 0.85rem; }
+.login label { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
+.login input { font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; width: 100%; }
+.login .err { color: var(--danger); font-size: 0.82rem; min-height: 1.1em; }
+.login-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.login-actions .add { margin-left: 0; padding: 8px 18px; }
+.login .ghost { padding: 8px 14px; font-size: 0.85rem; }
+.google { display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 9px; font-weight: 600; }
+.or { text-align: center; font-size: 0.75rem; color: var(--muted); margin: 4px 0; }
+.link { background: none; border: 0; color: var(--accent); padding: 4px 0; font-size: 0.82rem; text-decoration: underline; }
+/* compact + never wider than the phone */
+html, body { overflow-x: hidden; }
+main, .view, .view > *, form, .slot, .slot ul { min-width: 0; max-width: 100%; }
+.seg { flex: none; }
+.dform, #affirmForm, #dailyForm { flex-wrap: nowrap !important; padding: 6px; gap: 5px; }
+.dform input[type="text"] { flex: 1 1 auto !important; width: 0; min-width: 0; }
+#dailyForm .seg span { padding: 6px 6px; font-size: 0.74rem; }
+#addForm { padding: 6px; gap: 5px; }
+#addForm .seg span { padding: 6px 7px; }
+.add.tick { width: 32px; height: 32px; }
+header h1 { font-size: 1.05rem; }
+.today { font-size: 0.72rem; }
+.tabs button { padding: 6px 4px; }
+.cards { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+.card { padding: 8px 26px 8px 10px; min-height: 0; font-size: 0.88rem; }
+@media (max-width: 340px) { #dailyForm .seg span { padding: 6px 4px; font-size: 0.7rem; } #addForm .seg span { padding: 6px 5px; } }
 @media (prefers-reduced-motion: no-preference) { li { transition: opacity .15s; } li.done { opacity: .75; } }
 </style>
 
@@ -167,7 +198,35 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
     <h1>My Task Tracker</h1>
     <span class="today" id="today"></span>
   </header>
+  <div class="acct" id="acctBar" hidden>
+    <span id="acctEmail"></span>
+    <button type="button" id="acctBtn">Sign in</button>
+  </div>
 
+  <form id="loginView" class="login" hidden autocomplete="on">
+    <h2>Sign in to sync</h2>
+    <p>Sign in the same way on your computer and phone to see the same tasks everywhere.</p>
+    <button type="button" class="google" id="googleBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>
+      Continue with Google
+    </button>
+    <div class="or">or use email</div>
+    <label for="loginEmail">Email</label>
+    <input type="email" id="loginEmail" autocomplete="username" required>
+    <label for="loginPass">Password</label>
+    <input type="password" id="loginPass" autocomplete="current-password" minlength="6" required>
+    <div class="err" id="loginErr" role="alert"></div>
+    <div class="login-actions">
+      <button type="submit" class="add">Sign in</button>
+      <button type="button" class="ghost" id="signupBtn">Create account</button>
+    </div>
+    <div class="login-actions">
+      <button type="button" class="link" id="resetBtn">Forgot password?</button>
+      <button type="button" class="link" id="loginCancel">Cancel</button>
+    </div>
+  </form>
+
+  <div id="app" class="view">
   <div class="tabs" role="tablist">
     <button type="button" role="tab" id="tabTasks" aria-selected="true">Tasks</button>
     <button type="button" role="tab" id="tabDaily" aria-selected="false">Daily <span class="n" id="dailyCount"></span></button>
@@ -176,21 +235,21 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
 
   <div id="affirmView" class="view" hidden>
     <form id="affirmForm" class="dform">
-      <input type="text" id="affirmText" placeholder="I am calm, capable and focused" maxlength="140" autocomplete="off" aria-label="Affirmation">
-      <button class="add" id="affirmAdd" type="submit" disabled>Add</button>
+      <input type="text" id="affirmText" placeholder="I am calm and focused" maxlength="140" autocomplete="off" aria-label="Affirmation">
+      <button class="add tick" id="affirmAdd" type="submit" aria-label="Add affirmation" title="Add" disabled>&#10003;</button>
     </form>
     <div class="cards" id="affirmList"></div>
   </div>
 
   <div id="dailyView" class="view" hidden>
     <form id="dailyForm" class="dform">
-      <input type="text" id="dailyText" placeholder="Short daily habit, e.g. Drink 2L water" maxlength="80" autocomplete="off" aria-label="Daily item">
+      <input type="text" id="dailyText" placeholder="Daily habit" maxlength="80" autocomplete="off" aria-label="Daily item">
       <div class="seg" role="radiogroup" aria-label="Time of day">
-        <label><input type="radio" name="slot" value="morning" checked><span class="s">Morning</span></label>
-        <label><input type="radio" name="slot" value="afternoon"><span class="s">Afternoon</span></label>
-        <label><input type="radio" name="slot" value="evening"><span class="s">Evening</span></label>
+        <label><input type="radio" name="slot" value="morning" checked><span class="s" title="Morning">&#9728; Morn</span></label>
+        <label><input type="radio" name="slot" value="afternoon"><span class="s" title="Afternoon">&#9680; Aft</span></label>
+        <label><input type="radio" name="slot" value="evening"><span class="s" title="Evening">&#9790; Eve</span></label>
       </div>
-      <button class="add" id="dailyAdd" type="submit" disabled>Add</button>
+      <button class="add tick" id="dailyAdd" type="submit" aria-label="Add daily item" title="Add" disabled>&#10003;</button>
     </form>
     <ul id="dailyList"></ul>
     <div class="note">Ticks reset every morning.</div>
@@ -223,8 +282,13 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
     <button type="button" id="importBtn">Import backup</button>
     <input type="file" id="importFile" accept="application/json" hidden>
   </div>
+  </div>
 </main>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script>
 (function () {
   var tasks = [];
@@ -248,19 +312,20 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
     function write() { try { localStorage.setItem(key, JSON.stringify(mem)); } catch (e) {} cbs.forEach(function (f) { f(mem.slice()); }); }
     return {
       kind: "local",
-      subscribe: function (f) { cbs.push(f); f(mem.slice()); },
+      all: function () { return mem.slice(); },
+      subscribe: function (f) { cbs.push(f); f(mem.slice()); return function () { cbs = cbs.filter(function (g) { return g !== f; }); }; },
       put: function (t) { var i = mem.findIndex(function (x) { return x.id === t.id; }); if (i < 0) mem.push(t); else mem[i] = t; write(); return Promise.resolve(); },
       remove: function (id) { mem = mem.filter(function (x) { return x.id !== id; }); write(); return Promise.resolve(); }
     };
   }
-  function dbStore(db, uid) {
-    var col = db.collection("data/users/" + uid);
+  function cloudStore(fs, uid) {
+    var col = fs.collection("users").doc(uid).collection("tasks");
     return {
-      kind: "db",
+      kind: "cloud",
       subscribe: function (f) {
-        col.onSnapshot(function (snap) {
+        return col.onSnapshot(function (snap) {
           f(snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }));
-        }, function () { setNote("Sync stopped. Reload the page."); });
+        }, function () { setNote("Sync stopped. Sign out and in again."); });
       },
       put: function (t) { var b = Object.assign({}, t); delete b.id; return col.doc(t.id).set(b); },
       remove: function (id) { return col.doc(id).delete(); }
@@ -340,16 +405,22 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
   });
 
   /* ---------- boot ---------- */
+  var unsubTasks = null;
   function start(s) {
+    if (unsubTasks) unsubTasks();
     store = s;
-    store.subscribe(function (list) { tasks = list; render(); });
-    if (s.kind === "local") setNote("Saved in this browser only.");
+    unsubTasks = store.subscribe(function (list) { tasks = list; render(); });
+    setNote(s.kind === "local" ? "Saved on this device only." : "");
   }
   /* ---------- daily list: items persist, ticks reset each day ---------- */
   var daily = [];
   try { daily = JSON.parse(localStorage.getItem("tt.daily") || "[]"); } catch (e) {}
   function today() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
-  function saveDaily() { try { localStorage.setItem("tt.daily", JSON.stringify(daily)); } catch (e) {} renderDaily(); }
+  function saveDaily() {
+    if (cloud.uid) run(cloud.list("daily").set({ items: daily }));
+    else try { localStorage.setItem("tt.daily", JSON.stringify(daily)); } catch (e) {}
+    renderDaily();
+  }
   function renderDaily() {
     var t = today(), ul = document.getElementById("dailyList"); ul.textContent = "";
     var n = daily.filter(function (x) { return x.doneOn === t; }).length;
@@ -395,7 +466,11 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
   /* ---------- affirmations: colorful cards + one featured per day ---------- */
   var affirm = [], affirmPick = null;
   try { affirm = JSON.parse(localStorage.getItem("tt.affirm") || "[]"); } catch (e) {}
-  function saveAffirm() { try { localStorage.setItem("tt.affirm", JSON.stringify(affirm)); } catch (e) {} renderAffirm(); }
+  function saveAffirm() {
+    if (cloud.uid) run(cloud.list("affirm").set({ items: affirm }));
+    else try { localStorage.setItem("tt.affirm", JSON.stringify(affirm)); } catch (e) {}
+    renderAffirm();
+  }
   function dayIndex() { return Math.floor((new Date() - new Date(2026, 0, 1)) / 864e5); }
   function renderAffirm() {
     var box = document.getElementById("affirmList"); box.textContent = "";
@@ -437,7 +512,91 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
   showTab(load("tt.tab", "tasks")); renderDaily(); renderAffirm();
 
   render();
-  start(localStore());
+  var local = localStore();
+  start(local);
+
+  /* ---------- account + cloud sync (Firebase) ---------- */
+  var cloud = { uid: null, fs: null, unsubs: [], list: function (name) { return cloud.fs.collection("users").doc(cloud.uid).collection("lists").doc(name); } };
+  var $ = function (id) { return document.getElementById(id); };
+  function readLocal(k) { try { return JSON.parse(localStorage.getItem(k) || "[]"); } catch (e) { return []; } }
+  function mergeById(a, b) { var ids = {}; a.forEach(function (x) { ids[x.id] = 1; }); return a.concat(b.filter(function (x) { return x && x.id && !ids[x.id]; })); }
+
+  function openLogin(on) { $("loginView").hidden = !on; $("app").hidden = on; $("loginErr").textContent = ""; if (on) $("loginEmail").focus(); }
+  function showAcct(user) {
+    $("acctBtn").textContent = user ? "Sign out" : "Sign in";
+    $("acctEmail").textContent = user ? user.email : "";
+  }
+
+  function goCloud(user) {
+    cloud.uid = user.uid;
+    var key = "tt.migrated." + user.uid;
+    // first sign-in on this device: copy local data up so nothing is lost
+    if (load(key, "") !== "1") {
+      local.all().forEach(function (t) { cloudStore(cloud.fs, user.uid).put(t); });
+      ["daily", "affirm"].forEach(function (n) {
+        var mine = readLocal("tt." + n); if (!mine.length) return;
+        cloud.list(n).get().then(function (d) {
+          var theirs = (d.exists && d.data().items) || [];
+          return cloud.list(n).set({ items: mergeById(theirs, mine) });
+        });
+      });
+      save(key, "1");
+    }
+    start(cloudStore(cloud.fs, user.uid));
+    cloud.unsubs.push(cloud.list("daily").onSnapshot(function (d) { daily = (d.exists && d.data().items) || []; renderDaily(); }));
+    cloud.unsubs.push(cloud.list("affirm").onSnapshot(function (d) { affirm = (d.exists && d.data().items) || []; renderAffirm(); }));
+  }
+  function goLocal() {
+    cloud.unsubs.forEach(function (u) { u(); }); cloud.unsubs = []; cloud.uid = null;
+    daily = readLocal("tt.daily"); affirm = readLocal("tt.affirm");
+    renderDaily(); renderAffirm(); start(local);
+  }
+
+  var cfg = window.FIREBASE_CONFIG;
+  if (window.firebase && cfg && cfg.apiKey && cfg.apiKey.indexOf("PASTE") < 0) {
+    firebase.initializeApp(cfg);
+    cloud.fs = firebase.firestore();
+    cloud.fs.enablePersistence({ synchronizeTabs: true }).catch(function () {});
+    var auth = firebase.auth();
+    $("acctBar").hidden = false;
+    auth.onAuthStateChanged(function (user) {
+      showAcct(user);
+      if (user) { openLogin(false); goCloud(user); } else if (cloud.uid) goLocal();
+    });
+    $("acctBtn").addEventListener("click", function () { if (auth.currentUser) auth.signOut(); else openLogin(true); });
+    $("loginCancel").addEventListener("click", function () { openLogin(false); });
+    var msg = {
+      "auth/invalid-credential": "Email or password is wrong.",
+      "auth/wrong-password": "Email or password is wrong.",
+      "auth/user-not-found": "No account with that email. Tap Create account.",
+      "auth/email-already-in-use": "That email already has an account. Tap Sign in.",
+      "auth/weak-password": "Use at least 6 characters for the password.",
+      "auth/invalid-email": "That email address doesn't look right.",
+      "auth/network-request-failed": "No internet connection. Try again when you're online."
+    };
+    function fail(e) { $("loginErr").textContent = msg[e.code] || e.message; }
+    function creds() { return [$("loginEmail").value.trim(), $("loginPass").value]; }
+    $("loginView").addEventListener("submit", function (ev) {
+      ev.preventDefault(); var c = creds();
+      auth.signInWithEmailAndPassword(c[0], c[1]).catch(fail);
+    });
+    $("googleBtn").addEventListener("click", function () {
+      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function (e) {
+        if (e.code === "auth/popup-closed-by-user" || e.code === "auth/cancelled-popup-request") return;
+        if (e.code === "auth/popup-blocked" || e.code === "auth/operation-not-supported-in-this-environment") {
+          $("loginErr").textContent = "Google sign-in can't open here. Use email and password instead."; return;
+        }
+        fail(e);
+      });
+    });
+    $("signupBtn").addEventListener("click", function () {
+      var c = creds(); auth.createUserWithEmailAndPassword(c[0], c[1]).catch(fail);
+    });
+    $("resetBtn").addEventListener("click", function () {
+      var e = creds()[0]; if (!e) { $("loginErr").textContent = "Type your email first."; return; }
+      auth.sendPasswordResetEmail(e).then(function () { $("loginErr").textContent = "Reset link sent to " + e + "."; }).catch(fail);
+    });
+  }
 
   document.getElementById("exportBtn").addEventListener("click", function () {
     var a = document.createElement("a");
@@ -466,6 +625,7 @@ li.done .title { text-decoration: line-through; color: var(--muted); }
     impFile.value = "";
   });
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+
 })();
 </script>
 </body>
